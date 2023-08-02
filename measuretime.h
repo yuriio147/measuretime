@@ -18,7 +18,7 @@
 
 namespace mt
 {
-    using clock = std::chrono::steady_clock;
+    using clock = std::chrono::high_resolution_clock;
     using time_point = clock::time_point;
 
     template<typename D>
@@ -55,15 +55,13 @@ namespace mt
         return "h";
     }
 
-    template<typename Scope, typename Stream, typename Precision = std::chrono::milliseconds>
+    template<typename Scope, typename Stream, typename Precision = std::chrono::microseconds>
     class scope_time
     {
     public:
         scope_time(const scope_time&) = delete;
         scope_time& operator=(const scope_time&) = delete;
-        scope_time(Scope scope, Stream &stream)
-            : mScope{scope}
-            , mStream{stream}
+        scope_time(Scope scope, Stream& stream) : mScope{scope}, mStream{stream}
         {
             mBegin = clock::now();
         }
@@ -78,32 +76,33 @@ namespace mt
             sCalls[mScope]++;
             sTotal[mScope] += duration.count();
             const auto duration_str = duration_to_str(duration);
-            mStream << mScope << " " << duration.count() << " [" << duration_str << "]"
+            mStream << "\'" << mScope << "\'"
+                    << " " << duration.count() << " [" << duration_str << "]"
                     << " avg. " << sAvg[mScope] << " [" << duration_str << "]"
-                    << " cnt. " << sCalls[mScope] << " ttl. " << sTotal[mScope] << " ["
-                    << duration_str << "]";
-            if (std::is_base_of<std::ios_base, Stream>::value) {
+                    << " cnt. " << sCalls[mScope] << " ttl. " << sTotal[mScope] << " [" << duration_str << "]";
+            if (std::is_base_of<std::ios_base, Stream>::value)
+            {
                 mStream << "\n";
             }
         }
 
     private:
-        Stream &mStream;
+        Stream& mStream;
         Scope mScope;
         time_point mBegin;
     };
 
     template<typename Scope, typename Stream, typename Precision = std::chrono::microseconds>
-    auto make_scope_time(Scope scope, Stream &stream)
+    auto make_scope_time(Scope scope, Stream& stream)
     {
         return std::make_unique<scope_time<Scope, Stream, Precision>>(scope, stream);
     }
 
-    template<typename Key, typename Stream, typename Precision = std::chrono::milliseconds>
+    template<typename Key, typename Stream, typename Precision = std::chrono::microseconds>
     struct time_tracker
     {
         static std::map<std::pair<Key, std::size_t>, time_point> sBeginPointByKey;
-        static auto begin(Key key, Stream &stream)
+        static auto begin(Key key, Stream& stream)
         {
             const auto mapKey = std::pair{key, typeid(stream).hash_code()};
             const auto now = clock::now();
@@ -111,16 +110,18 @@ namespace mt
             return std::chrono::duration_cast<Precision>(now.time_since_epoch()).count();
         }
 
-        static auto log(Key key, Stream &stream)
+        static auto log(Key key, Stream& stream)
         {
             const auto mapKey = std::pair{key, typeid(stream).hash_code()};
             const auto now = clock::now();
             const auto it = sBeginPointByKey.find(mapKey);
-            if (it != sBeginPointByKey.cend()) {
+            if (it != sBeginPointByKey.cend())
+            {
                 const auto elapsed = std::chrono::duration_cast<Precision>(now - it->second);
-                stream << key << " log " << elapsed.count() << " [" << duration_to_str(elapsed)
-                       << "]";
-                if (std::is_base_of<std::ios_base, Stream>::value) {
+                stream << "\'" << key << "\'"
+                       << " log: " << elapsed.count() << " [" << duration_to_str(elapsed) << "]";
+                if (std::is_base_of<std::ios_base, Stream>::value)
+                {
                     stream << "\n";
                 }
                 return elapsed.count();
@@ -128,16 +129,18 @@ namespace mt
             return decltype(std::chrono::duration_cast<Precision>(now.time_since_epoch()).count())();
         }
 
-        static auto end(Key key, Stream &stream)
+        static auto end(Key key, Stream& stream)
         {
             const auto mapKey = std::pair{key, typeid(stream).hash_code()};
             const auto now = clock::now();
             const auto it = sBeginPointByKey.find(mapKey);
-            if (it != sBeginPointByKey.cend()) {
+            if (it != sBeginPointByKey.cend())
+            {
                 const auto elapsed = std::chrono::duration_cast<Precision>(now - it->second);
-                stream << key << " end " << elapsed.count() << " [" << duration_to_str(elapsed)
-                       << "]";
-                if (std::is_base_of<std::ios_base, Stream>::value) {
+                stream << "\'" << key << "\'"
+                       << " end: " << elapsed.count() << " [" << duration_to_str(elapsed) << "]";
+                if (std::is_base_of<std::ios_base, Stream>::value)
+                {
                     stream << "\n";
                 }
                 sBeginPointByKey.erase(it);
@@ -148,34 +151,32 @@ namespace mt
     };
 
     template<typename Key, typename Stream, typename Precision>
-    std::map<std::pair<Key, std::size_t>, time_point>
-        time_tracker<Key, Stream, Precision>::sBeginPointByKey{};
+    std::map<std::pair<Key, std::size_t>, time_point> time_tracker<Key, Stream, Precision>::sBeginPointByKey{};
 
-    template<typename Key, typename Stream, typename Precision = std::chrono::milliseconds>
-    auto time_tracker_begin(Key key, Stream &stream)
+    template<typename Key, typename Stream, typename Precision = std::chrono::microseconds>
+    auto time_tracker_begin(Key key, Stream& stream)
     {
         return time_tracker<Key, Stream, Precision>::begin(key, stream);
     }
 
-    template<typename Key, typename Stream, typename Precision = std::chrono::milliseconds>
-    auto time_tracker_log(Key key, Stream &stream)
+    template<typename Key, typename Stream, typename Precision = std::chrono::microseconds>
+    auto time_tracker_log(Key key, Stream& stream)
     {
         return time_tracker<Key, Stream, Precision>::log(key, stream);
     }
 
-    template<typename Key, typename Stream, typename Precision = std::chrono::milliseconds>
-    auto time_tracker_end(Key key, Stream &stream)
+    template<typename Key, typename Stream, typename Precision = std::chrono::microseconds>
+    auto time_tracker_end(Key key, Stream& stream)
     {
         return time_tracker<Key, Stream, Precision>::end(key, stream);
     }
 
-    } // namespace mt
+} // namespace mt
 
 #define COMBINE1(X, Y) X##Y // helper macro
 #define COMBINE(X, Y) COMBINE1(X, Y)
 
-#define debugScopeTime(Scope) \
-        auto COMBINE(__debugScopeTime, __LINE__){mt::make_scope_time(Scope, std::cout)};
+#define debugScopeTime(Scope) auto COMBINE(__debugScopeTime, __LINE__){mt::make_scope_time(Scope, std::cout)};
 #define debugTime(Key) mt::time_tracker_begin(Key, std::cout);
 #define debugTimeLog(Key) mt::time_tracker_log(Key, std::cout);
 #define debugTimeEnd(Key) mt::time_tracker_end(Key, std::cout);
@@ -184,35 +185,33 @@ namespace mt
 #include <QDebug>
 
 #define qDebugScopeTime(Scope) \
-        auto COMBINE(__qDebugScopeThis, __LINE__){qDebug()}; \
-        auto COMBINE(__qDebugScopeTime, __LINE__){ \
-            mt::make_scope_time(Scope, COMBINE(__qDebugScopeThis, __LINE__).nospace())};
+    auto COMBINE(__qDebugScopeThis, __LINE__){qDebug()}; \
+    auto COMBINE(__qDebugScopeTime, __LINE__){mt::make_scope_time(Scope, COMBINE(__qDebugScopeThis, __LINE__).nospace())};
 #define qDebugTime(Key) \
-        \auto COMBINE(__qDebugTimeThis, __LINE__){qDebug()}; \
-        \ mt::time_tracker_begin(Key, COMBINE(__qDebugTimeThis, __LINE__).nospace());
+    \auto COMBINE(__qDebugTimeThis, __LINE__){qDebug()}; \
+    \ mt::time_tracker_begin(Key, COMBINE(__qDebugTimeThis, __LINE__).nospace());
 #define qDebugTimeLog(Key) \
-        \auto COMBINE(__qDebugTimeLogThis, __LINE__){qDebug()}; \
-        mt::time_tracker_log(Key, COMBINE(__qDebugTimeLogThis, __LINE__).nospace());
+    \auto COMBINE(__qDebugTimeLogThis, __LINE__){qDebug()}; \
+    mt::time_tracker_log(Key, COMBINE(__qDebugTimeLogThis, __LINE__).nospace());
 #define qDebugTimeEnd(Key) \
-        \auto COMBINE(__qDebugTimeEndThis, __LINE__){qDebug()}; \
-        \mt::time_tracker_end(Key, COMBINE(__qDebugTimeEndThis, __LINE__).nospace());
+    \auto COMBINE(__qDebugTimeEndThis, __LINE__){qDebug()}; \
+    \mt::time_tracker_end(Key, COMBINE(__qDebugTimeEndThis, __LINE__).nospace());
 
 #define qWarnScopeTime(Scope) \
-        auto COMBINE(__qWarnScopeThis, __LINE__){qWarning()}; \
-        auto COMBINE(__qWarnScopeTime, __LINE__){ \
-            mt::make_scope_time(Scope, COMBINE(__qWarnScopeThis, __LINE__).nospace())};
+    auto COMBINE(__qWarnScopeThis, __LINE__){qWarning()}; \
+    auto COMBINE(__qWarnScopeTime, __LINE__){mt::make_scope_time(Scope, COMBINE(__qWarnScopeThis, __LINE__).nospace())};
 #define qWarnTime(Key) \
-        \auto COMBINE(__qWarnTimeThis, __LINE__){qWarning()}; \
-        \ mt::time_tracker_begin(Key, COMBINE(__qWarnTimeThis, __LINE__).nospace());
+    \auto COMBINE(__qWarnTimeThis, __LINE__){qWarning()}; \
+    \ mt::time_tracker_begin(Key, COMBINE(__qWarnTimeThis, __LINE__).nospace());
 #define qWarnTimeLog(Key) \
-        \auto COMBINE(__qWarnTimeLogThis, __LINE__){qWarning()}; \
-        mt::time_tracker_log(Key, COMBINE(__qWarnTimeLogThis, __LINE__).nospace());
+    \auto COMBINE(__qWarnTimeLogThis, __LINE__){qWarning()}; \
+    mt::time_tracker_log(Key, COMBINE(__qWarnTimeLogThis, __LINE__).nospace());
 #define qWarnTimeEnd(Key) \
-        \auto COMBINE(__qWarnTimeEndThis, __LINE__){qWarning()}; \
-        \mt::time_tracker_end(Key, COMBINE(__qWarnTimeEndThis, __LINE__).nospace());
+    \auto COMBINE(__qWarnTimeEndThis, __LINE__){qWarning()}; \
+    \mt::time_tracker_end(Key, COMBINE(__qWarnTimeEndThis, __LINE__).nospace());
 #endif
 
-    /* Some snipets for Qt Creator:
+/* Some snipets for Qt Creator:
  *    dst dscopetime -> debugScopeTime($__FUNCTION__$);
  *    dtb dtimebegin -> debugTime(std::string{$key$});
  *    dte dtimeend -> debugTimeEnd(std::string{$key$});
