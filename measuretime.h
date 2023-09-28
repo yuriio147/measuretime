@@ -188,27 +188,27 @@ namespace mt
     auto COMBINE(__qDebugScopeThis, __LINE__){qDebug()}; \
     auto COMBINE(__qDebugScopeTime, __LINE__){mt::make_scope_time(Scope, COMBINE(__qDebugScopeThis, __LINE__).nospace())};
 #define qDebugTime(Key) \
-    \auto COMBINE(__qDebugTimeThis, __LINE__){qDebug()}; \
-    \ mt::time_tracker_begin(Key, COMBINE(__qDebugTimeThis, __LINE__).nospace());
+    auto COMBINE(__qDebugTimeThis, __LINE__){qDebug()}; \
+    mt::time_tracker_begin(Key, COMBINE(__qDebugTimeThis, __LINE__).nospace());
 #define qDebugTimeLog(Key) \
-    \auto COMBINE(__qDebugTimeLogThis, __LINE__){qDebug()}; \
+    auto COMBINE(__qDebugTimeLogThis, __LINE__){qDebug()}; \
     mt::time_tracker_log(Key, COMBINE(__qDebugTimeLogThis, __LINE__).nospace());
 #define qDebugTimeEnd(Key) \
-    \auto COMBINE(__qDebugTimeEndThis, __LINE__){qDebug()}; \
-    \mt::time_tracker_end(Key, COMBINE(__qDebugTimeEndThis, __LINE__).nospace());
+    auto COMBINE(__qDebugTimeEndThis, __LINE__){qDebug()}; \
+    mt::time_tracker_end(Key, COMBINE(__qDebugTimeEndThis, __LINE__).nospace());
 
 #define qWarnScopeTime(Scope) \
     auto COMBINE(__qWarnScopeThis, __LINE__){qWarning()}; \
     auto COMBINE(__qWarnScopeTime, __LINE__){mt::make_scope_time(Scope, COMBINE(__qWarnScopeThis, __LINE__).nospace())};
 #define qWarnTime(Key) \
-    \auto COMBINE(__qWarnTimeThis, __LINE__){qWarning()}; \
-    \ mt::time_tracker_begin(Key, COMBINE(__qWarnTimeThis, __LINE__).nospace());
+    auto COMBINE(__qWarnTimeThis, __LINE__){qWarning()}; \
+    mt::time_tracker_begin(Key, COMBINE(__qWarnTimeThis, __LINE__).nospace());
 #define qWarnTimeLog(Key) \
-    \auto COMBINE(__qWarnTimeLogThis, __LINE__){qWarning()}; \
+    auto COMBINE(__qWarnTimeLogThis, __LINE__){qWarning()}; \
     mt::time_tracker_log(Key, COMBINE(__qWarnTimeLogThis, __LINE__).nospace());
 #define qWarnTimeEnd(Key) \
-    \auto COMBINE(__qWarnTimeEndThis, __LINE__){qWarning()}; \
-    \mt::time_tracker_end(Key, COMBINE(__qWarnTimeEndThis, __LINE__).nospace());
+    auto COMBINE(__qWarnTimeEndThis, __LINE__){qWarning()}; \
+    mt::time_tracker_end(Key, COMBINE(__qWarnTimeEndThis, __LINE__).nospace());
 #endif
 
 /* Some snipets for Qt Creator:
